@@ -7,7 +7,11 @@ const estudanteSchema = mongoose.Schema({
         unique: true,
         required: true
     },
-    escola: String
+    escola: String,
+    curso: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'curso'
+    }
 })
 
 module.exports = mongoose.model('estudante', estudanteSchema);

@@ -10,6 +10,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(require('./routes/usuario'));
 app.use(require('./routes/grupo'));
 app.use(require('./routes/universidade'));
+app.use(require('./routes/agendamento'));
 
 const PORT = 3500;
 

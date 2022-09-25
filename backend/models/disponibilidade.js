@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const voluntarioDisponibilidadeSchema = mongoose.Schema({
+const disponibilidadeSchema = mongoose.Schema({
     voluntario: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'voluntario',
@@ -19,11 +19,11 @@ const voluntarioDisponibilidadeSchema = mongoose.Schema({
     sabado: [String]
 });
 
-voluntarioDisponibilidadeSchema.index({
+disponibilidadeSchema.index({
     voluntario: 1,
     semana: 1,
 }, {
     unique: true,
 });
 
-module.exports = mongoose.model('voluntarioDisponibilidade', voluntarioDisponibilidadeSchema);
+module.exports = mongoose.model('disponibilidade', disponibilidadeSchema);

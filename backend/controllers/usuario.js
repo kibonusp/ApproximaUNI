@@ -43,13 +43,14 @@ module.exports.criarUsuario = async (req, res) => {
                 descricao: req.body.descricao
             })
 
-            const pessoaSalvo = await pessoa.save()
+            const pessoaSalvo = await pessoa.save();
 
             switch(cargo) {
                 case 'ESTUDANTE':
                     const estudante = new estudanteModel({
                         pessoa: pessoaSalvo._id,
-                        escola: req.body.escola
+                        escola: req.body.escola,
+                        curso: req.body.curso
                     })
                     const estudanteSalvo = await estudante.save();
                     return res.status(200).send(estudanteSalvo);
