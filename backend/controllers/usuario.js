@@ -115,7 +115,3 @@ module.exports.validateToken = (req, res, next) => {
         next();
     });
 };
-
-function getUserID(token) {
-    return jwt.verify(token, process.env['ACCESS_SECRET']).id;
-}

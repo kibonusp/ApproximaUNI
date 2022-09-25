@@ -1,24 +1,24 @@
 const agendamentoModel = require('../models/agendamento');
-const disponibilidadeModel = require('../models/disponibilidade')
+const disponibilidadeModel = require('../models/disponibilidade');
+const authUtils = require('../utils/auth');
 
-
-const diasDaSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']
+const diasDaSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
 
 function checkDayValid(day) {
-    let pattern = /^(0|1|2)[0-9]:[0-5][0-9]-(0|1|2)[0-9]:[0-5][0-9]$/
-    let valido = true
+    let pattern = /^(0|1|2)[0-9]:[0-5][0-9]-(0|1|2)[0-9]:[0-5][0-9]$/;
+    let valido = true;
     
     for (let interval of day) {
-        time = interval.split('-')
-        start = time[0]
-        end = time[1]
+        time = interval.split('-');
+        start = time[0];
+        end = time[1];
         if (start.split(':')[0]*60 + start.split(':'[1]) > end.split(':')[0]*60 + end.split(':'[1]))
-            valido = false
+            valido = false;
 
         if (valido && !pattern.test(interval))
-            valido = false
+            valido = false;
     }
-    return valido
+    return valido;
 }
 
 function getMonday(d) {
@@ -29,30 +29,32 @@ function getMonday(d) {
   }
 
 function isInInterval(time, interval) {
-    let intervalTime = interval.split('-')
-    let start = intervalTime[0]
-    let end = intervalTime[1]
+    let intervalTime = interval.split('-');
+    let start = intervalTime[0];
+    let end = intervalTime[1];
     
-    let startMinutes = start.split(':')[0]*60 + start.split(':')[1]
-    let endMinutes = end.split(':')[0]*60 + end.split(':')[1]
-    let timeMinutes = time.split(':')[0]*60 + time.split(':')[1]
+    let startMinutes = start.split(':')[0]*60 + start.split(':')[1];
+    let endMinutes = end.split(':')[0]*60 + end.split(':')[1];
+    let timeMinutes = time.split(':')[0]*60 + time.split(':')[1];
 
     if (timeMinutes >= startMinutes && timeMinutes <= endMinutes)
-        return true
-    return false
+        return true;
+    return false;
 }
 
 module.exports.criarDisponibilidade = async (req, res) => {
-    let disponibilidadeValido = true
-    for (let dia of diasDaSemana) {
-        if (disponibilidadeValido && !checkDayValid(req.body[dia]))
-            disponibilidadeValido = false
-    }
-
-    semana = new Date(req.body.semana);
-    semana = getMonday(semana)
-
     try {
+        if (authUtils.isNotVoluntario(req.sub))
+            return res.status(403).send("Apenas voluntários podem acessar este endpoint.")
+
+        let disponibilidadeValido = true
+        for (let dia of diasDaSemana) {
+            if (disponibilidadeValido && !checkDayValid(req.body[dia]))
+                disponibilidadeValido = false
+        }
+
+        semana = new Date(req.body.semana);
+        semana = getMonday(semana)
         if (!disponibilidadeValido)
             throw 'Formato da disponibilidade está inválido';
         const disponibilidade = new disponibilidadeModel({
@@ -79,7 +81,9 @@ module.exports.criarDisponibilidade = async (req, res) => {
 
 module.exports.criarAgendamento = async (req, res) => {
     try {
-        // Checando se tem um agendamento disponivel
+        if (authUtils.isNotEstudante(req.sub))
+            return res.status(403).send("Apenas estudantes podem acessar este endpoint.");
+
         let semana = new Date(req.body.data);
         let segunda = semana;
         semana = diasDaSemana[semana.getDay()]
@@ -128,3 +132,31 @@ module.exports.criarAgendamento = async (req, res) => {
         return res.status(500).send(error);
     }
 };
+
+module.exports.getEstudanteAgendamentos = async (req, res) => {
+    try {
+        if (authUtils.isNotEstudante(req.sub))
+            return res.status(403).send("Apenas estudantes podem acessar este endpoint.");
+
+        const agendamentos = await agendamentoModel.find({estudante: req.params.id});
+        return res.status(200).send(agendamentos);
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).send(error);
+    }
+}
+
+module.exports.getVoluntarioAgendamentos = async (req, res) => {
+    try {
+        if (authUtils.isNotVoluntario(req.sub))
+            return res.status(403).send("Apenas voluntários podem acessar este endpoint.");
+
+        const agendamentos = await agendamentoModel.find({voluntario: req.params.id});
+        return res.status(200).send(agendamentos);
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).send(error);
+    }
+}

@@ -21,9 +21,23 @@ module.exports.getUserID = token => {
     return jwt.verify(token, process.env['ACCESS_SECRET']).id;
 };
 
-module.exports.isAdmin = id => {
+module.exports.isNotAdmin = id => {
     const usuario = usuarioModel.findById(id);
     if (usuario.cargo !== 'ADMIN')
+        return false
+    return true
+}
+
+module.exports.isNotVoluntario = id => {
+    const usuario = usuarioModel.findById(id);
+    if (usuario.cargo !== 'VOLUNTARIO')
+        return false
+    return true
+}
+
+module.exports.isNotEstudante = id => {
+    const usuario = usuarioModel.findById(id);
+    if (usuario.cargo !== 'ESTUDANTE')
         return false
     return true
 }
